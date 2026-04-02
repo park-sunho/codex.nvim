@@ -30,6 +30,10 @@ function M.setup(user_config)
     M.toggle()
   end, { desc = 'Toggle Codex popup (alias)' })
 
+  vim.api.nvim_create_user_command('CodexResume', function()
+    M.open({ resume = true })
+  end, { desc = 'Resume last Codex session' })
+
   if config.keymaps.toggle then
     vim.api.nvim_set_keymap('n', config.keymaps.toggle, '<cmd>CodexToggle<CR>', { noremap = true, silent = true })
   end
@@ -100,7 +104,8 @@ local function open_panel()
   state.win = win
 end
 
-function M.open()
+function M.open(opts)
+  opts = opts or {}
   local function create_clean_buf()
     local buf = vim.api.nvim_create_buf(false, false)
 
@@ -177,6 +182,9 @@ function M.open()
   if not state.job then
     -- assemble command
     local cmd_args = type(config.cmd) == 'string' and { config.cmd } or vim.deepcopy(config.cmd)
+    if opts.resume then
+      table.insert(cmd_args, 'resume')
+    end
     if config.model then
       table.insert(cmd_args, '-m')
       table.insert(cmd_args, config.model)
